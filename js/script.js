@@ -157,26 +157,52 @@ class BiometricMandalaGenerator {
     }
     
     async init() {
-        this.detectCapabilities();
-        this.setupCanvas();
-        this.setupControls();
-        this.setupChart();
-        this.setupParticleBackground();
-        this.setupAccessibility();
-        this.setupPerformanceMonitoring();
-        this.setupTouchInteractions();
-        this.startSessionTracking();
-        
-        // Initial generation with smooth intro
-        await this.generateMandalaWithIntro();
-        this.startAnimation();
-        this.updateAllDisplays();
-        
-        // Setup periodic updates
-        this.setupPeriodicUpdates();
-        
-        // Announce app ready to screen readers
-        this.announce('Biometric Mandala Generator loaded and ready');
+        try {
+            console.log('Initializing Biometric Mandala Generator...');
+            
+            this.detectCapabilities();
+            console.log('Capabilities detected:', this.capabilities);
+            
+            this.setupCanvas();
+            this.setupControls();
+            this.setupChart();
+            this.setupParticleBackground();
+            this.setupAccessibility();
+            this.setupPerformanceMonitoring();
+            this.setupTouchInteractions();
+            this.startSessionTracking();
+            
+            // Wait a frame to ensure DOM is ready
+            await this.nextFrame();
+            
+            // Initial generation with smooth intro
+            console.log('Starting initial mandala generation...');
+            await this.generateMandalaWithIntro();
+            
+            this.startAnimation();
+            this.updateAllDisplays();
+            
+            // Setup periodic updates
+            this.setupPeriodicUpdates();
+            
+            // Announce app ready to screen readers
+            this.announce('Biometric Mandala Generator loaded and ready');
+            
+            console.log('Biometric Mandala Generator initialized successfully');
+            
+        } catch (error) {
+            console.error('Initialization failed:', error);
+            this.showToast('Application failed to initialize properly', 'error');
+            
+            // Try to create a basic fallback
+            try {
+                this.createFallbackMandala();
+                this.showToast('Running in fallback mode', 'warning');
+            } catch (fallbackError) {
+                console.error('Even fallback initialization failed:', fallbackError);
+                this.showToast('Critical initialization failure', 'error');
+            }
+        }
     }
     
     detectCapabilities() {
@@ -201,22 +227,40 @@ class BiometricMandalaGenerator {
     }
     
     setupCanvas() {
-        this.canvas = document.getElementById('mandalaCanvas');
-        paper.setup(this.canvas);
-        this.project = paper.project;
-        
-        // Create organized layer groups
-        this.backgroundLayer = new paper.Group();
-        this.mandalaGroup = new paper.Group();
-        this.animationGroup = new paper.Group();
-        this.effectsLayer = new paper.Group();
-        
-        // Handle responsive canvas
-        this.handleCanvasResize();
-        window.addEventListener('resize', () => this.debounce(this.handleCanvasResize.bind(this), 250));
-        
-        // Handle visibility changes for performance
-        document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        try {
+            this.canvas = document.getElementById('mandalaCanvas');
+            if (!this.canvas) {
+                throw new Error('Canvas element not found');
+            }
+            
+            // Initialize Paper.js with proper scope
+            paper.setup(this.canvas);
+            this.project = paper.project;
+            
+            // Create organized layer groups with error checking
+            this.backgroundLayer = new paper.Group();
+            this.mandalaGroup = new paper.Group();
+            this.animationGroup = new paper.Group();
+            this.effectsLayer = new paper.Group();
+            
+            // Ensure groups are properly added to project
+            this.project.activeLayer.addChild(this.backgroundLayer);
+            this.project.activeLayer.addChild(this.mandalaGroup);
+            this.project.activeLayer.addChild(this.animationGroup);
+            this.project.activeLayer.addChild(this.effectsLayer);
+            
+            // Handle responsive canvas
+            this.handleCanvasResize();
+            window.addEventListener('resize', () => this.debounce(this.handleCanvasResize.bind(this), 250));
+            
+            // Handle visibility changes for performance
+            document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+            
+            console.log('Canvas setup completed successfully');
+        } catch (error) {
+            console.error('Canvas setup failed:', error);
+            this.showToast('Canvas initialization failed', 'error');
+        }
     }
     
     handleCanvasResize() {
@@ -737,105 +781,373 @@ class BiometricMandalaGenerator {
     }
     
     async generateMandala() {
-        // Clear existing mandala with fade out
-        if (this.mandalaGroup.children.length > 0) {
-            await this.clearMandalaWithAnimation();
-        }
-        
-        // Calculate mandala parameters
-        const center = paper.view.center;
-        const maxRadius = Math.min(paper.view.size.width, paper.view.size.height) * 0.35;
-        
-        // Dynamic sizing based on steps
-        const activityLevel = Math.max(0.4, Math.min(1.2, this.biometrics.steps / 15000));
-        const baseRadius = maxRadius * activityLevel;
-        
-        // Get current mood palette
-        const palette = this.colorPalettes[this.biometrics.mood];
-        
-        // Calculate complexity based on sleep quality
-        const complexity = Math.max(3, Math.min(12, Math.floor(this.biometrics.sleepHours * 1.5) + 2));
-        this.complexityScore = complexity;
-        
-        // Determine pattern style based on stress
-        const stressLevel = this.biometrics.stress;
-        let patternStyle;
-        if (stressLevel <= 3) patternStyle = 'calm';
-        else if (stressLevel <= 6) patternStyle = 'moderate';
-        else patternStyle = 'intense';
-        
-        // Generate mandala layers
-        for (let layer = 0; layer < complexity; layer++) {
-            await this.createAdvancedMandalaLayer(center, baseRadius, layer, complexity, palette, patternStyle);
-            
-            // Yield control to prevent blocking
-            if (layer % 3 === 0) {
-                await this.nextFrame();
+        try {
+            // Clear existing mandala with fade out
+            if (this.mandalaGroup && this.mandalaGroup.children.length > 0) {
+                await this.clearMandalaWithAnimation();
             }
+            
+            // Ensure Paper.js is ready
+            if (!paper.project || !paper.view) {
+                throw new Error('Paper.js not properly initialized');
+            }
+            
+            // Calculate mandala parameters
+            const center = paper.view.center;
+            const maxRadius = Math.min(paper.view.size.width, paper.view.size.height) * 0.35;
+            
+            if (!center || maxRadius <= 0) {
+                throw new Error('Invalid canvas dimensions');
+            }
+            
+            // Dynamic sizing based on steps
+            const activityLevel = Math.max(0.4, Math.min(1.2, this.biometrics.steps / 15000));
+            const baseRadius = maxRadius * activityLevel;
+            
+            // Get current mood palette
+            const palette = this.colorPalettes[this.biometrics.mood];
+            if (!palette || !palette.colors) {
+                throw new Error('Invalid color palette');
+            }
+            
+            // Calculate complexity based on sleep quality
+            const complexity = Math.max(3, Math.min(12, Math.floor(this.biometrics.sleepHours * 1.5) + 2));
+            this.complexityScore = complexity;
+            
+            // Determine pattern style based on stress
+            const stressLevel = this.biometrics.stress;
+            let patternStyle;
+            if (stressLevel <= 3) patternStyle = 'calm';
+            else if (stressLevel <= 6) patternStyle = 'moderate';
+            else patternStyle = 'intense';
+            
+            // Generate mandala layers with error handling
+            for (let layer = 0; layer < complexity; layer++) {
+                try {
+                    await this.createSafeMandalaLayer(center, baseRadius, layer, complexity, palette, patternStyle);
+                    
+                    // Yield control to prevent blocking
+                    if (layer % 3 === 0) {
+                        await this.nextFrame();
+                    }
+                } catch (layerError) {
+                    console.warn(`Error creating layer ${layer}:`, layerError);
+                    // Continue with other layers
+                }
+            }
+            
+            // Create central focal point
+            this.createSafeCentralElement(center, palette, baseRadius);
+            
+            // Add energy-based effects
+            this.addSafeEnergyEffects(center, baseRadius, palette);
+            
+            // Update counters
+            this.patternCount++;
+            
+            // Trigger initial animation
+            this.animateMandalaBirth();
+            
+            console.log('Mandala generated successfully');
+            
+        } catch (error) {
+            console.error('Error generating mandala:', error);
+            this.showToast('Error generating mandala. Using fallback pattern.', 'warning');
+            this.createFallbackMandala();
         }
-        
-        // Create central focal point
-        this.createEnhancedCentralElement(center, palette, baseRadius);
-        
-        // Add energy-based effects
-        this.addEnergyEffects(center, baseRadius, palette);
-        
-        // Update counters
-        this.patternCount++;
-        
-        // Trigger initial animation
-        this.animateMandalaBirth();
     }
     
-    async createAdvancedMandalaLayer(center, baseRadius, layer, totalLayers, palette, patternStyle) {
-        const layerRadius = baseRadius * (1 - (layer / totalLayers) * 0.6);
-        const colorIndex = layer % palette.colors.length;
-        const color = palette.colors[colorIndex];
-        
-        // Dynamic element count based on biometrics
-        const heartRateInfluence = Math.max(6, Math.floor(this.biometrics.heartRate / 12));
-        const elementsCount = heartRateInfluence + layer;
-        
-        // Create layer group
-        const layerGroup = new paper.Group();
-        
-        // Generate elements based on pattern style
-        for (let i = 0; i < elementsCount; i++) {
-            const angle = (360 / elementsCount * i) * Math.PI / 180;
-            const x = center.x + Math.cos(angle) * layerRadius;
-            const y = center.y + Math.sin(angle) * layerRadius;
+    async createSafeMandalaLayer(center, baseRadius, layer, totalLayers, palette, patternStyle) {
+        try {
+            const layerRadius = baseRadius * (1 - (layer / totalLayers) * 0.6);
+            const colorIndex = layer % palette.colors.length;
+            const color = palette.colors[colorIndex];
             
-            let element;
-            switch (patternStyle) {
-                case 'calm':
-                    element = this.createCalmElement(x, y, layerRadius, color, angle, layer);
-                    break;
-                case 'moderate':
-                    element = this.createModerateElement(x, y, layerRadius, color, angle, layer);
-                    break;
-                case 'intense':
-                    element = this.createIntenseElement(x, y, layerRadius, color, angle, layer);
-                    break;
+            // Dynamic element count based on biometrics
+            const heartRateInfluence = Math.max(6, Math.floor(this.biometrics.heartRate / 12));
+            const elementsCount = Math.min(24, heartRateInfluence + layer); // Limit elements for performance
+            
+            // Create layer group
+            const layerGroup = new paper.Group();
+            
+            // Generate elements based on pattern style
+            for (let i = 0; i < elementsCount; i++) {
+                try {
+                    const angle = (360 / elementsCount * i) * Math.PI / 180;
+                    const x = center.x + Math.cos(angle) * layerRadius;
+                    const y = center.y + Math.sin(angle) * layerRadius;
+                    
+                    let element;
+                    switch (patternStyle) {
+                        case 'calm':
+                            element = this.createSafeCalmElement(x, y, layerRadius, color, angle, layer);
+                            break;
+                        case 'moderate':
+                            element = this.createSafeModerateElement(x, y, layerRadius, color, angle, layer);
+                            break;
+                        case 'intense':
+                            element = this.createSafeIntenseElement(x, y, layerRadius, color, angle, layer);
+                            break;
+                        default:
+                            element = this.createSafeCalmElement(x, y, layerRadius, color, angle, layer);
+                    }
+                    
+                    if (element) {
+                        layerGroup.addChild(element);
+                        this.animationGroup.addChild(element);
+                        
+                        // Safe micro-animation
+                        if (!this.capabilities.reducedMotion) {
+                            element.opacity = 0;
+                            anime({
+                                targets: element,
+                                opacity: [0, 0.8],
+                                scale: [0, 1],
+                                duration: 300,
+                                delay: i * 20,
+                                easing: 'easeOutBack'
+                            });
+                        }
+                    }
+                } catch (elementError) {
+                    console.warn(`Error creating element ${i} in layer ${layer}:`, elementError);
+                    // Continue with other elements
+                }
             }
             
-            if (element) {
-                layerGroup.addChild(element);
-                this.animationGroup.addChild(element);
-                
-                // Add micro-animation delay for organic feel
-                element.opacity = 0;
+            this.mandalaGroup.addChild(layerGroup);
+            
+        } catch (error) {
+            console.error('Error creating mandala layer:', error);
+            throw error;
+        }
+    }
+    
+    createSafeCalmElement(x, y, radius, color, angle, layer) {
+        try {
+            const energyMultiplier = this.biometrics.energy / 10;
+            const size = Math.max(2, (radius * 0.03 + layer * 0.005) * energyMultiplier);
+            
+            // Create simple circle with safe color handling
+            const element = new paper.Path.Circle(new paper.Point(x, y), size);
+            
+            // Safe color assignment
+            try {
+                element.fillColor = new paper.Color(color);
+                element.strokeColor = new paper.Color(color).lighten(0.3);
+            } catch (colorError) {
+                // Fallback to basic colors
+                element.fillColor = '#4ecdc4';
+                element.strokeColor = '#ffffff';
+            }
+            
+            element.strokeWidth = 1;
+            element.opacity = Math.max(0.3, 0.7 + (layer * 0.02));
+            
+            return element;
+        } catch (error) {
+            console.error('Error creating calm element:', error);
+            return null;
+        }
+    }
+    
+    createSafeModerateElement(x, y, radius, color, angle, layer) {
+        try {
+            const energyMultiplier = this.biometrics.energy / 10;
+            const size = Math.max(2, (radius * 0.04 + layer * 0.008) * energyMultiplier);
+            
+            // Create geometric shape
+            const sides = Math.max(3, Math.min(8, 4 + Math.floor(layer / 2)));
+            const element = new paper.Path.RegularPolygon(new paper.Point(x, y), sides, size);
+            
+            // Safe color assignment
+            try {
+                element.fillColor = new paper.Color(color);
+                element.strokeColor = '#ffffff';
+            } catch (colorError) {
+                element.fillColor = '#ff6b6b';
+                element.strokeColor = '#ffffff';
+            }
+            
+            element.strokeWidth = 1.5;
+            element.opacity = Math.max(0.3, 0.6 + (layer * 0.03));
+            element.rotate(angle * 180 / Math.PI + layer * 15);
+            
+            return element;
+        } catch (error) {
+            console.error('Error creating moderate element:', error);
+            return null;
+        }
+    }
+    
+    createSafeIntenseElement(x, y, radius, color, angle, layer) {
+        try {
+            const energyMultiplier = this.biometrics.energy / 10;
+            const size = Math.max(2, (radius * 0.05 + layer * 0.01) * energyMultiplier);
+            
+            // Create star shape
+            const spikes = Math.max(5, Math.min(12, 6 + layer));
+            const element = new paper.Path.Star(new paper.Point(x, y), spikes, size * 0.4, size);
+            
+            // Safe color assignment
+            try {
+                element.fillColor = new paper.Color(color);
+                element.strokeColor = new paper.Color(color).lighten(0.5);
+            } catch (colorError) {
+                element.fillColor = '#45b7d1';
+                element.strokeColor = '#ffffff';
+            }
+            
+            element.strokeWidth = 2;
+            element.opacity = Math.max(0.3, 0.5 + (layer * 0.04));
+            element.rotate(angle * 180 / Math.PI + layer * 30);
+            
+            // Safe scaling
+            const stressScale = 1 + (this.biometrics.stress / 30);
+            element.scale(stressScale);
+            
+            return element;
+        } catch (error) {
+            console.error('Error creating intense element:', error);
+            return null;
+        }
+    }
+    
+    createSafeCentralElement(center, palette, baseRadius) {
+        try {
+            const centralSize = Math.max(10, 15 + (this.biometrics.mood * 2) + (this.biometrics.energy));
+            
+            // Create simple central element group
+            const centralGroup = new paper.Group();
+            
+            // Outer ring
+            const outerRing = new paper.Path.Circle(center, centralSize * 1.5);
+            try {
+                outerRing.strokeColor = new paper.Color(palette.colors[0]);
+            } catch (colorError) {
+                outerRing.strokeColor = '#4ecdc4';
+            }
+            outerRing.strokeWidth = 3;
+            outerRing.opacity = 0.6;
+            centralGroup.addChild(outerRing);
+            
+            // Main center
+            const centralElement = new paper.Path.Circle(center, centralSize);
+            try {
+                centralElement.fillColor = new paper.Color(palette.colors[0]);
+                centralElement.strokeColor = '#ffffff';
+            } catch (colorError) {
+                centralElement.fillColor = '#4ecdc4';
+                centralElement.strokeColor = '#ffffff';
+            }
+            centralElement.strokeWidth = 2;
+            centralGroup.addChild(centralElement);
+            
+            // Inner core
+            const innerCore = new paper.Path.Circle(center, centralSize * 0.4);
+            try {
+                innerCore.fillColor = new paper.Color(palette.colors[palette.colors.length - 1]).lighten(0.3);
+            } catch (colorError) {
+                innerCore.fillColor = '#ffffff';
+            }
+            innerCore.opacity = 0.8;
+            centralGroup.addChild(innerCore);
+            
+            this.mandalaGroup.addChild(centralGroup);
+            this.animationGroup.addChild(centralGroup);
+            
+        } catch (error) {
+            console.error('Error creating central element:', error);
+            // Create basic fallback central element
+            const fallbackCenter = new paper.Path.Circle(center, 20);
+            fallbackCenter.fillColor = '#4ecdc4';
+            fallbackCenter.strokeColor = '#ffffff';
+            fallbackCenter.strokeWidth = 2;
+            this.mandalaGroup.addChild(fallbackCenter);
+        }
+    }
+    
+    addSafeEnergyEffects(center, radius, palette) {
+        try {
+            if (this.biometrics.energy < 6) return;
+            
+            // Add simple energy aura for high energy levels
+            const auraRadius = radius * 1.2;
+            const aura = new paper.Path.Circle(center, auraRadius);
+            
+            try {
+                aura.strokeColor = new paper.Color(palette.colors[0]).lighten(0.4);
+            } catch (colorError) {
+                aura.strokeColor = '#4ecdc4';
+            }
+            
+            aura.strokeWidth = 2;
+            aura.opacity = 0.3;
+            aura.dashArray = [5, 5];
+            
+            this.effectsLayer.addChild(aura);
+            this.animationGroup.addChild(aura);
+            
+            // Safe pulsing animation for high energy
+            if (!this.capabilities.reducedMotion) {
                 anime({
-                    targets: element,
-                    opacity: [0, 0.8],
-                    scale: [0, 1],
-                    duration: this.capabilities.reducedMotion ? 50 : 300,
-                    delay: i * 20,
-                    easing: 'easeOutBack'
+                    targets: aura,
+                    opacity: [0.3, 0.7, 0.3],
+                    scale: [1, 1.05, 1],
+                    duration: 2000,
+                    easing: 'easeInOutSine',
+                    loop: true
                 });
             }
+        } catch (error) {
+            console.error('Error adding energy effects:', error);
+            // Skip energy effects if they fail
         }
-        
-        this.mandalaGroup.addChild(layerGroup);
+    }
+    
+    createFallbackMandala() {
+        try {
+            // Clear existing elements
+            this.mandalaGroup.removeChildren();
+            this.animationGroup.removeChildren();
+            
+            const center = paper.view.center;
+            const radius = Math.min(paper.view.size.width, paper.view.size.height) * 0.2;
+            
+            // Create simple fallback mandala
+            for (let layer = 0; layer < 5; layer++) {
+                const layerRadius = radius * (1 - layer * 0.15);
+                const elements = 8 + layer * 2;
+                
+                for (let i = 0; i < elements; i++) {
+                    const angle = (360 / elements * i) * Math.PI / 180;
+                    const x = center.x + Math.cos(angle) * layerRadius;
+                    const y = center.y + Math.sin(angle) * layerRadius;
+                    
+                    const element = new paper.Path.Circle(new paper.Point(x, y), 5);
+                    element.fillColor = layer % 2 === 0 ? '#4ecdc4' : '#ff6b6b';
+                    element.opacity = 0.7;
+                    
+                    this.mandalaGroup.addChild(element);
+                    this.animationGroup.addChild(element);
+                }
+            }
+            
+            // Central element
+            const central = new paper.Path.Circle(center, 15);
+            central.fillColor = '#ffffff';
+            central.strokeColor = '#4ecdc4';
+            central.strokeWidth = 3;
+            
+            this.mandalaGroup.addChild(central);
+            this.animationGroup.addChild(central);
+            
+            console.log('Fallback mandala created');
+            
+        } catch (error) {
+            console.error('Even fallback mandala failed:', error);
+            this.showToast('Critical error: Unable to create mandala', 'error');
+        }
     }
     
     createCalmElement(x, y, radius, color, angle, layer) {
@@ -975,72 +1287,161 @@ class BiometricMandalaGenerator {
     }
     
     async clearMandalaWithAnimation() {
-        if (this.capabilities.reducedMotion) {
-            this.mandalaGroup.removeChildren();
-            this.animationGroup.removeChildren();
-            this.effectsLayer.removeChildren();
-            return;
-        }
-        
-        return new Promise(resolve => {
-            anime({
-                targets: this.mandalaGroup.children,
-                scale: 0,
-                opacity: 0,
-                rotate: 180,
-                duration: 500,
-                delay: anime.stagger(50),
-                easing: 'easeInBack',
-                complete: () => {
-                    this.mandalaGroup.removeChildren();
-                    this.animationGroup.removeChildren();
-                    this.effectsLayer.removeChildren();
-                    resolve();
+        try {
+            if (this.capabilities.reducedMotion || !this.mandalaGroup || !this.mandalaGroup.children) {
+                // Immediate clear for reduced motion or if no elements
+                this.safeClearMandala();
+                return;
+            }
+            
+            return new Promise(resolve => {
+                // Safe animation clearing
+                const elementsToAnimate = [];
+                
+                // Collect all elements safely
+                if (this.mandalaGroup.children) {
+                    this.mandalaGroup.children.forEach(child => {
+                        if (child && child.visible !== false) {
+                            elementsToAnimate.push(child);
+                        }
+                    });
                 }
+                
+                if (elementsToAnimate.length === 0) {
+                    this.safeClearMandala();
+                    resolve();
+                    return;
+                }
+                
+                // Animate elements out
+                anime({
+                    targets: elementsToAnimate,
+                    scale: 0,
+                    opacity: 0,
+                    rotate: 180,
+                    duration: 500,
+                    delay: anime.stagger(50),
+                    easing: 'easeInBack',
+                    complete: () => {
+                        this.safeClearMandala();
+                        resolve();
+                    }
+                });
             });
-        });
+            
+        } catch (error) {
+            console.error('Error clearing mandala with animation:', error);
+            this.safeClearMandala();
+        }
+    }
+    
+    safeClearMandala() {
+        try {
+            if (this.mandalaGroup) {
+                this.mandalaGroup.removeChildren();
+            }
+            if (this.animationGroup) {
+                this.animationGroup.removeChildren();
+            }
+            if (this.effectsLayer) {
+                this.effectsLayer.removeChildren();
+            }
+            
+            // Force redraw
+            if (paper.view && typeof paper.view.draw === 'function') {
+                paper.view.draw();
+            }
+        } catch (error) {
+            console.error('Error in safe clear mandala:', error);
+        }
     }
     
     startAnimation() {
         if (!this.isAnimating) return;
         
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+        
         const animate = (currentTime) => {
             if (!this.isAnimating) return;
             
-            // Performance monitoring
-            this.updateFrameRate(currentTime);
+            // Throttle animation to target FPS
+            if (currentTime - lastFrameTime < frameInterval) {
+                this.animationFrame = requestAnimationFrame(animate);
+                return;
+            }
             
-            // Dynamic rotation based on heart rate and energy
-            const baseRotationSpeed = (this.biometrics.heartRate / 2000) * (this.biometrics.energy / 10);
-            const breathingRate = 1000 + (this.biometrics.stress * 100);
-            
-            // Animate mandala elements
-            if (this.animationGroup && this.animationGroup.children) {
-                this.animationGroup.children.forEach((child, index) => {
-                    if (child.rotate) {
-                        const direction = index % 2 === 0 ? 1 : -1;
-                        const layerSpeed = baseRotationSpeed * (1 + index * 0.1);
-                        child.rotate(layerSpeed * direction);
+            try {
+                // Performance monitoring
+                this.updateFrameRate(currentTime);
+                
+                // Only animate if we have valid elements and good performance
+                if (this.fps > 15 && paper.view && this.animationGroup && this.mandalaGroup) {
+                    
+                    // Dynamic rotation based on heart rate and energy
+                    const baseRotationSpeed = (this.biometrics.heartRate / 3000) * (this.biometrics.energy / 10);
+                    const breathingRate = 1000 + (this.biometrics.stress * 100);
+                    
+                    // Animate mandala elements safely
+                    if (this.animationGroup.children && this.animationGroup.children.length > 0) {
+                        this.animationGroup.children.forEach((child, index) => {
+                            if (child && typeof child.rotate === 'function') {
+                                try {
+                                    const direction = index % 2 === 0 ? 1 : -1;
+                                    const layerSpeed = baseRotationSpeed * (1 + index * 0.1);
+                                    child.rotate(layerSpeed * direction);
+                                } catch (rotateError) {
+                                    // Skip this element if rotation fails
+                                }
+                            }
+                        });
                     }
-                });
+                    
+                    // Safe breathing effect based on stress (inverted)
+                    if (this.mandalaGroup && typeof this.mandalaGroup.scaling !== 'undefined') {
+                        try {
+                            const breathingIntensity = 1 + (0.01 * (11 - this.biometrics.stress));
+                            const breathingPhase = Math.sin(currentTime / breathingRate) * 0.02;
+                            const newScale = breathingIntensity + breathingPhase;
+                            
+                            // Ensure scaling is within reasonable bounds
+                            if (newScale > 0.5 && newScale < 2.0) {
+                                this.mandalaGroup.scaling = newScale;
+                            }
+                        } catch (scalingError) {
+                            // Skip breathing effect if it fails
+                        }
+                    }
+                    
+                    // Safe energy pulse effects
+                    if (this.biometrics.energy > 7 && this.effectsLayer && this.effectsLayer.children) {
+                        try {
+                            const energyPulse = Math.sin(currentTime / 500) * 0.1 + 1;
+                            if (energyPulse > 0.8 && energyPulse < 1.3) {
+                                this.effectsLayer.scaling = energyPulse;
+                            }
+                        } catch (pulseError) {
+                            // Skip energy effects if they fail
+                        }
+                    }
+                    
+                    // Safe canvas redraw
+                    try {
+                        if (paper.view && typeof paper.view.draw === 'function') {
+                            paper.view.draw();
+                        }
+                    } catch (drawError) {
+                        console.warn('Canvas draw error:', drawError);
+                    }
+                }
+                
+                lastFrameTime = currentTime;
+                
+            } catch (animationError) {
+                console.error('Animation loop error:', animationError);
+                // Continue animation even if there's an error
             }
-            
-            // Breathing effect based on stress (inverted)
-            const breathingIntensity = 1 + (0.01 * (11 - this.biometrics.stress));
-            const breathingPhase = Math.sin(currentTime / breathingRate) * 0.02;
-            
-            if (this.mandalaGroup) {
-                this.mandalaGroup.scaling = breathingIntensity + breathingPhase;
-            }
-            
-            // Energy pulse effects
-            if (this.biometrics.energy > 7 && this.effectsLayer) {
-                const energyPulse = Math.sin(currentTime / 500) * 0.1 + 1;
-                this.effectsLayer.scaling = energyPulse;
-            }
-            
-            // Redraw canvas
-            paper.view.draw();
             
             this.animationFrame = requestAnimationFrame(animate);
         };
@@ -1083,33 +1484,41 @@ class BiometricMandalaGenerator {
     }
     
     updateMandalaColors() {
-        const palette = this.colorPalettes[this.biometrics.mood];
-        
-        if (!this.mandalaGroup || !this.mandalaGroup.children) return;
-        
-        this.mandalaGroup.children.forEach((layer, layerIndex) => {
-            if (layer.children) {
-                const colorIndex = layerIndex % palette.colors.length;
-                const targetColor = palette.colors[colorIndex];
-                
-                layer.children.forEach(element => {
-                    if (element.fillColor && !this.capabilities.reducedMotion) {
-                        // Smooth color transition
-                        anime({
-                            targets: element.fillColor,
-                            hue: new paper.Color(targetColor).hue,
-                            saturation: new paper.Color(targetColor).saturation,
-                            lightness: new paper.Color(targetColor).lightness,
-                            duration: 1000,
-                            easing: 'easeInOutQuart'
-                        });
-                    } else if (element.fillColor) {
-                        // Immediate color change for reduced motion
-                        element.fillColor = targetColor;
-                    }
-                });
-            }
-        });
+        try {
+            const palette = this.colorPalettes[this.biometrics.mood];
+            
+            if (!this.mandalaGroup || !this.mandalaGroup.children || !palette) return;
+            
+            this.mandalaGroup.children.forEach((layer, layerIndex) => {
+                if (layer && layer.children) {
+                    const colorIndex = layerIndex % palette.colors.length;
+                    const targetColor = palette.colors[colorIndex];
+                    
+                    layer.children.forEach(element => {
+                        if (element && element.fillColor) {
+                            try {
+                                if (!this.capabilities.reducedMotion) {
+                                    // Simple color transition without complex animation
+                                    element.fillColor = new paper.Color(targetColor);
+                                } else {
+                                    // Immediate color change for reduced motion
+                                    element.fillColor = new paper.Color(targetColor);
+                                }
+                            } catch (colorError) {
+                                // Fallback to string color assignment
+                                element.fillColor = targetColor;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Update particle colors as well
+            this.updateParticleColors();
+            
+        } catch (error) {
+            console.error('Error updating mandala colors:', error);
+        }
     }
     
     updateParticleColors() {
@@ -1697,6 +2106,28 @@ class BiometricMandalaGenerator {
         button.appendChild(ripple);
         
         setTimeout(() => button.removeChild(ripple), 600);
+    }
+    
+    
+    // Compatibility methods for backward compatibility
+    createEnhancedCentralElement(center, palette, baseRadius) {
+        return this.createSafeCentralElement(center, palette, baseRadius);
+    }
+    
+    addEnergyEffects(center, baseRadius, palette) {
+        return this.addSafeEnergyEffects(center, baseRadius, palette);
+    }
+    
+    createCalmElement(x, y, radius, color, angle, layer) {
+        return this.createSafeCalmElement(x, y, radius, color, angle, layer);
+    }
+    
+    createModerateElement(x, y, radius, color, angle, layer) {
+        return this.createSafeModerateElement(x, y, radius, color, angle, layer);
+    }
+    
+    createIntenseElement(x, y, radius, color, angle, layer) {
+        return this.createSafeIntenseElement(x, y, radius, color, angle, layer);
     }
     
     // Utility methods
