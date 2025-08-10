@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Mandala Generator - Transform Your Data Into Living Art</title>
+    
+    <!-- Meta Tags for SEO and Social Sharing -->
+    <meta name="description" content="Transform your biometric data into beautiful, living mandalas. Watch as your heart rate, sleep, mood, and wellness metrics become stunning geometric art.">
+    <meta property="og:title" content="Biometric Mandala Generator">
+    <meta property="og:description" content="Transform your wellness data into living art">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.17/paper-full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <!-- Control Panel -->
+        <aside class="control-panel" id="controlPanel">
+            <!-- Header Section -->
+            <header class="panel-header">
+                <div class="logo-section">
+                    <i class="fas fa-dharmachakra logo-icon"></i>
+                    <h1>Biometric Mandala</h1>
+                </div>
+                <p class="subtitle">
+                    <i class="fas fa-sparkles"></i>
+                    Transform your life data into living art
+                </p>
+                <button class="close-panel" id="closePanelBtn" aria-label="Close panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="quick-action-btn" id="quickStart" title="Quick Start Tutorial">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Quick Start</span>
+                </button>
+                <button class="quick-action-btn" id="presetMorning" title="Morning Preset">
+                    <i class="fas fa-sun"></i>
+                    <span>Morning</span>
+                </button>
+                <button class="quick-action-btn" id="presetEvening" title="Evening Preset">
+                    <i class="fas fa-moon"></i>
+                    <span>Evening</span>
+                </button>
+            </div>
+            
+            <!-- Biometric Controls -->
+            <div class="controls-section">
+                <h2 class="section-title">
+                    <i class="fas fa-heartbeat"></i>
+                    Biometric Data
+                </h2>
+                
+                <!-- Heart Rate Control -->
+                <div class="input-group" data-metric="heartRate">
+                    <label for="heartRate" class="input-label">
+                        <i class="fas fa-heart heart-icon"></i>
+                        <span>Heart Rate</span>
+                        <div class="metric-info" title="Your resting or current heart rate">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="heartRate" min="40" max="200" value="72" 
+                               class="biometric-slider" data-unit="BPM">
+                        <div class="value-display">
+                            <span class="value-number" id="heartRateValue">72</span>
+                            <span class="value-unit">BPM</span>
+                            <div class="effect-label">
+                                <i class="fas fa-sync-alt"></i>
+                                Controls rotation speed
+                            </div>
+                        </div>
+                        <div class="range-indicators">
+                            <span class="range-min">40</span>
+                            <span class="range-max">200</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sleep Quality Control -->
+                <div class="input-group" data-metric="sleep">
+                    <label for="sleepHours" class="input-label">
+                        <i class="fas fa-bed sleep-icon"></i>
+                        <span>Sleep Quality</span>
+                        <div class="metric-info" title="Hours of quality sleep last night">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="sleepHours" min="3" max="12" value="8" step="0.5"
+                               class="biometric-slider" data-unit="Hours">
+                        <div class="value-display">
+                            <span class="value-number" id="sleepValue">8.0</span>
+                            <span class="value-unit">Hours</span>
+                            <div class="effect-label">
+                                <i class="fas fa-layer-group"></i>
+                                Controls pattern complexity
+                            </div>
+                        </div>
+                        <div class="range-indicators">
+                            <span class="range-min">3h</span>
+                            <span class="range-max">12h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Steps Control -->
+                <div class="input-group" data-metric="steps">
+                    <label for="steps" class="input-label">
+                        <i class="fas fa-walking steps-icon"></i>
+                        <span>Daily Steps</span>
+                        <div class="metric-info" title="Total steps taken today">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="steps" min="0" max="25000" value="8000" step="500"
+                               class="biometric-slider" data-unit="Steps">
+                        <div class="value-display">
+                            <span class="value-number" id="stepsValue">8,000</span>
+                            <span class="value-unit">Steps</span>
+                            <div class="effect-label">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                Controls mandala size
+                            </div>
+                        </div>
+                        <div class="range-indicators">
+                            <span class="range-min">0</span>
+                            <span class="range-max">25k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mood Rating Control -->
+                <div class="input-group" data-metric="mood">
+                    <label for="mood" class="input-label">
+                        <i class="fas fa-smile mood-icon"></i>
+                        <span>Mood Rating</span>
+                        <div class="metric-info" title="How you're feeling right now">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="mood" min="1" max="10" value="7"
+                               class="biometric-slider" data-unit="Rating">
+                        <div class="value-display">
+                            <span class="value-number" id="moodValue">7</span>
+                            <span class="value-unit">/ 10</span>
+                            <div class="effect-label">
+                                <i class="fas fa-palette"></i>
+                                Controls color palette
+                            </div>
+                            <div class="mood-indicator" id="moodIndicator"></div>
+                        </div>
+                        <div class="mood-scale">
+                            <span class="mood-emoji" data-mood="1">😢</span>
+                            <span class="mood-emoji" data-mood="5">😐</span>
+                            <span class="mood-emoji" data-mood="10">😄</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stress Level Control -->
+                <div class="input-group" data-metric="stress">
+                    <label for="stress" class="input-label">
+                        <i class="fas fa-brain stress-icon"></i>
+                        <span>Stress Level</span>
+                        <div class="metric-info" title="Current stress level (1=calm, 10=very stressed)">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="stress" min="1" max="10" value="3"
+                               class="biometric-slider" data-unit="Level">
+                        <div class="value-display">
+                            <span class="value-number" id="stressValue">3</span>
+                            <span class="value-unit">/ 10</span>
+                            <div class="effect-label">
+                                <i class="fas fa-shapes"></i>
+                                Controls pattern intensity
+                            </div>
+                        </div>
+                        <div class="stress-indicators">
+                            <span class="stress-level calm">Calm</span>
+                            <span class="stress-level moderate">Moderate</span>
+                            <span class="stress-level high">High</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Energy Level Control -->
+                <div class="input-group" data-metric="energy">
+                    <label for="energy" class="input-label">
+                        <i class="fas fa-bolt energy-icon"></i>
+                        <span>Energy Level</span>
+                        <div class="metric-info" title="Current energy and vitality level">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                    </label>
+                    <div class="input-container">
+                        <input type="range" id="energy" min="1" max="10" value="6"
+                               class="biometric-slider" data-unit="Level">
+                        <div class="value-display">
+                            <span class="value-number" id="energyValue">6</span>
+                            <span class="value-unit">/ 10</span>
+                            <div class="effect-label">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Controls animation speed
+                            </div>
+                        </div>
+                        <div class="energy-bar" id="energyBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Actions -->
+            <div class="action-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i>
+                    Controls
+                </h2>
+                
+                <div class="primary-actions">
+                    <button id="regenerateBtn" class="action-btn primary" title="Generate new mandala">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Regenerate</span>
+                    </button>
+                    <button id="pauseBtn" class="action-btn secondary" title="Pause/resume animation">
+                        <i class="fas fa-pause"></i>
+                        <span>Pause</span>
+                    </button>
+                </div>
+                
+                <div class="secondary-actions">
+                    <button id="exportBtn" class="action-btn tertiary" title="Export as image">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                    <button id="shareBtn" class="action-btn tertiary" title="Share your mandala">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Share</span>
+                    </button>
+                    <button id="randomDataBtn" class="action-btn tertiary" title="Generate random data">
+                        <i class="fas fa-dice"></i>
+                        <span>Random</span>
+                    </button>
+                    <button id="fullscreenBtn" class="action-btn tertiary" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                        <span>Fullscreen</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Panel -->
+            <div class="stats-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Live Analytics
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dharmachakra"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="patternCount">0</span>
+                            <span class="stat-label">Patterns</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="complexityScore">0</span>
+                            <span class="stat-label">Complexity</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="fps">60</span>
+                            <span class="stat-label">FPS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="sessionTime">0:00</span>
+                            <span class="stat-label">Session</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Visualization Chart -->
+            <div class="chart-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-radar"></i>
+                    Biometric Overview
+                </h2>
+                <div class="chart-container">
+                    <canvas id="dataChart" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Mandala Visualization -->
+        <main class="mandala-main">
+            <div class="mandala-container" id="mandalaContainer">
+                <!-- Canvas for mandala rendering -->
+                <canvas id="mandalaCanvas" resize></canvas>
+                
+                <!-- Wellness Score Overlay -->
+                <div class="wellness-overlay">
+                    <div class="wellness-card">
+                        <div class="wellness-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="wellness-content">
+                            <span class="wellness-label">Wellness Score</span>
+                            <span class="wellness-value" id="wellnessScore">75</span>
+                            <div class="wellness-bar">
+                                <div class="wellness-progress" id="wellnessProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pattern Information -->
+                <div class="pattern-overlay">
+                    <div class="pattern-card">
+                        <div class="pattern-icon">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <div class="pattern-content">
+                            <span class="pattern-type" id="patternType">Geometric Harmony</span>
+                            <span class="pattern-subtitle" id="patternSubtitle">Balanced Energy Flow</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Animation -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <i class="fas fa-dharmachakra"></i>
+                        </div>
+                        <h3>Generating Your Mandala</h3>
+                        <p>Transforming your biometric data into living art...</p>
+                        <div class="loading-progress">
+                            <div class="loading-bar" id="loadingBar"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Touch/Mouse Interaction Hints -->
+                <div class="interaction-hints" id="interactionHints">
+                    <div class="hint-item">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span>Tap to focus</span>
+                    </div>
+                    <div class="hint-item">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                        <span>Pinch to zoom</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Background Effects -->
+    <div class="particle-background" id="particleBackground"></div>
+    
+    <!-- Ambient Sound Toggle -->
+    <button class="ambient-toggle" id="ambientToggle" title="Toggle ambient sounds">
+        <i class="fas fa-volume-up"></i>
+    </button>
+    
+    <!-- Accessibility Announcements -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements"></div>
+    
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+</body>
+</html>
